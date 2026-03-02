@@ -203,7 +203,10 @@ def cmd_init(args: argparse.Namespace) -> int:
     # Non-interactive mode: just write defaults
     if getattr(args, "quick", False) or not sys.stdin.isatty():
         path = write_default_config(overwrite=args.overwrite)
-        print(str(path))
+        if getattr(args, "json_output", False):
+            print(json.dumps({"config_path": str(path), "created": True}))
+        else:
+            print(str(path))
         return 0
 
     print("\n  BEACON AGENT SETUP")
@@ -4516,12 +4519,14 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
 def main(argv: Optional[List[str]] = None) -> None:
     p = argparse.ArgumentParser(prog="beacon", description="Beacon 2.4.0 - autonomous agent economy: presence, trust, feed, rules, tasks, memory, outbox, executor, mayday, heartbeat, accord")
     p.add_argument("--version", action="version", version=__version__)
+    p.add_argument("--json", action="store_true", dest="json_output", help="Output results as JSON")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     # init
     sp = sub.add_parser("init", help="Create ~/.beacon/config.json (interactive questionnaire)")
     sp.add_argument("--overwrite", action="store_true", help="Overwrite existing config")
     sp.add_argument("--quick", action="store_true", help="Skip questionnaire, write defaults")
+    sp.add_argument("--json", action="store_true", dest="json_output", help="Output config path as JSON")
     sp.set_defaults(func=cmd_init)
 
     # decode
